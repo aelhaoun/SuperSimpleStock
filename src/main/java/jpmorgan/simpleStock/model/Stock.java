@@ -158,7 +158,7 @@ public class Stock {
 	 * If there is any problem with computation, NEGATIVE_INFINITY is returned
 	 * @return The dividend yield.
 	 */
-	public double getDividendYield() {
+	public double getDividendYield() throws ArithmeticException{
 		double dividendYield = Double.NEGATIVE_INFINITY;
 		if(sharePrice > 0.0){
 			if( stockType==StockType.COMMON){// stockType==StockType.COMMON
@@ -167,6 +167,9 @@ public class Stock {
 				// stockType==StockType.PREFERRED
 				dividendYield = (fixedDividend * parValue ) / sharePrice;
 			}
+		}else {
+			logger.error("The share price must be greater than 0");
+			throw new ArithmeticException();
 		}
 		return dividendYield;
 	}
@@ -175,15 +178,18 @@ public class Stock {
 	 * Get the Price-Earnings Ratio.
 	 * The price-earnings ratio can be calculated as:
 	 * 			Market Value per Share / Earnings per Share
-	 *			===>
+	 *			===> sharePrice / last Dividend (I assume that the company didn't keep any proper capital).
 	 * If there is any problem with computation, NEGATIVE_INFINITY is returned
 	 * @return the P/E ration.
 	 */
-	public double getPeRatio() {
+	public double getPeRatio() throws ArithmeticException{
 		double peRatio = Double.NEGATIVE_INFINITY;
 		
-		if(sharePrice > 0.0){
-			peRatio = 1;// I don't find the earning per share anywhere in the exercice
+		if(lastDividend > 0.0){
+			peRatio = sharePrice/lastDividend;
+		}else  if (lastDividend == 0){
+			logger.error("The last dividend should be greater than 0");
+			throw new ArithmeticException();
 		}
 		
 		return peRatio;

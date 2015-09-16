@@ -22,6 +22,6 @@ public interface StockMarketSimulator {
 	
 	public void setStocks(HashMap<StockSymbol, Stock> stocks);
 	
-	public List<Trade> getTradesInWindow(StockSymbol stockSymbol, int window);
+	public List<Trade> getTradesByStockSymbol(StockSymbol stockSymbol);
 
 }

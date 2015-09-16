@@ -28,19 +28,21 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 	/** {@inheritDoc} */
 	@Override
 	public double calculateDividendYield(StockSymbol stockSymbol) {
-		double dividendYield = -1.0;
+		double dividendYield = Double.NEGATIVE_INFINITY;
 
 		try{
+			logger.info("Calculate the dividend yield");
 			Stock stock = stockMarketSimulator.getStockByStockSymbol(stockSymbol);
 			if(stock==null){
-				throw new Exception("");
+				throw new Exception("No stock found that correspond to the stock Symbol");
 			}
 
 			if(stock.getSharePrice() <= 0.0){
-				throw new Exception("");
+				throw new Exception("The share price should have a postive value");
 			}
 			dividendYield = stock.getDividendYield();
 		}catch(Exception e){
+			logger.error("Error: calcul dividend yield");
 			e.printStackTrace();
 		}
 		
@@ -52,14 +54,15 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 	public double calculatePERation(StockSymbol stockSymbol) {
 		double peRatio = -1.0;
 		try{
+			logger.info("Calculate the P/E Ration");
 			Stock stock = stockMarketSimulator.getStockByStockSymbol(stockSymbol);
 
 			if(stock==null){
-				throw new Exception("");
+				throw new Exception("No stock found that correspond to the stock Symbol");
 			}
 
 			if(stock.getSharePrice() <= 0.0){
-				throw new Exception("");
+				throw new Exception("The share price should have a postive value");
 			}
 
 			peRatio = stock.getPeRatio();
@@ -77,27 +80,29 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 		try{
 			
 			if(trade==null){
-				throw new Exception("");
+				throw new Exception("The trade is not initialised");
 			}
 
 			if(trade.getStock()==null){
-				throw new Exception("");
+				throw new Exception("No stock found that correspond to the stock Symbol");
 			}
 
 			if(trade.getSharesQuantity()<=0){
-				throw new Exception("");
+				throw new Exception("The quantity of share is a positive value");
 			}
 
 			if(trade.getTradePrice()<=0.0){
-				throw new Exception("");
+				throw new Exception("THe trade price is a positif value");
 			}
 
+			logger.info("Recode of a new trade");
 			stockMarketSimulator.recordTrade(trade);
 
 			trade.getStock().setSharePrice(trade.getTradePrice());
 
 
 		}catch(Exception e){
+			logger.error("An error occured recording the trade");
 			e.printStackTrace();
 		}
 	}
@@ -105,7 +110,7 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 	private  double calculateStockPriceByWindow(final StockSymbol stockSymbol, final int window) {
 		double stockPriceWindow = 0.0;
 		
-		List<Trade> trades = stockMarketSimulator.getTradesInWindow(stockSymbol, window);
+		List<Trade> trades = stockMarketSimulator.getTradesByStockSymbol(stockSymbol);
 
 		int shareQuantityTotal = 0;
 		double tradePriceTotal = 0.0;
@@ -116,6 +121,25 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 			tradePriceTotal += (trade.getTradePrice() * trade.getSharesQuantity());
 			shareQuantityTotal += trade.getSharesQuantity();
 			}
+		}
+		if(shareQuantityTotal > 0){
+			stockPriceWindow = tradePriceTotal / shareQuantityTotal;	
+		}
+
+		return stockPriceWindow;
+	}
+	
+	private  double calculateStockPriceAllTradesByStockSymbol(final StockSymbol stockSymbol) {
+		double stockPriceWindow = 0.0;
+		
+		List<Trade> trades = stockMarketSimulator.getTradesByStockSymbol(stockSymbol);
+
+		int shareQuantityTotal = 0;
+		double tradePriceTotal = 0.0;
+		for(Trade trade : trades){
+			tradePriceTotal += (trade.getTradePrice() * trade.getSharesQuantity());
+			shareQuantityTotal += trade.getSharesQuantity();
+			
 		}
 		if(shareQuantityTotal > 0){
 			stockPriceWindow = tradePriceTotal / shareQuantityTotal;	

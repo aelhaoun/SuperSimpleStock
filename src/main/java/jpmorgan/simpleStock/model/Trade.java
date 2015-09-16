@@ -35,10 +35,12 @@ public class Trade {
 	/**
 	 * Trade constructor.
 	 */
-	public Trade() {
-		sharesQuantity = 0;
+	public Trade(double tradePrice, int sharesQuantity, Stock stock){
+		this.tradePrice = tradePrice;
+		this.sharesQuantity = sharesQuantity;
 		tradeIndicator = TradeIndicator.BUY;
-		tradePrice = 0.0;
+		this.stock = stock;
+
 	}
 
 	/**

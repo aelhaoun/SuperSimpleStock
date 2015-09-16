@@ -62,12 +62,15 @@ public class StockMarketSimulatorImpl implements StockMarketSimulator {
 		this.stocks = stocks;
 	}
 
+
 	@Override
-	public List<Trade> getTradesInWindow(StockSymbol stockSymbol, int window) {
+	public List<Trade> getTradesByStockSymbol(StockSymbol stockSymbol) {
 		List<Trade> tradeListWindow = new ArrayList<Trade>();
 
 		for (Trade trade : tradeList){
-			tradeListWindow.add(trade);
+			if (trade.getStock().getStockSymbol().equals(stockSymbol)) {
+				tradeListWindow.add(trade);
+			}
 		}
 		
 		return tradeListWindow;

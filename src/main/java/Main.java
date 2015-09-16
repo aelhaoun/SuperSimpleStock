@@ -25,6 +25,8 @@ public class Main {
 		
 		stockMarket.setStocks(stocks);
 		
+		System.out.println("Fin de programe");
+		
 	}
 
 }
