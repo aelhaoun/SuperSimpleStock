@@ -2,66 +2,191 @@ package jpmorgan.simpleStock.model;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Stock modelisation.
+ * 
+ * @author AELHAOUNI
+ *
+ */
 public class Stock {
 	
+	/**
+	 * Logger.
+	 */
 	private Logger logger = Logger.getLogger(Stock.class);
 	
-	private StockSymbol stockSymbol = null;
+	/**
+	 * Stock Symbol.
+	 */
+	private StockSymbol stockSymbol;
 	
+	/**
+	 * Stock Type.
+	 */
 	private StockType stockType = StockType.COMMON;
 	
-	private Double lastDividend;
+	/**
+	 * Last dividend
+	 */
+	private double lastDividend;
 	
+	/**
+	 * Fixed dividend.
+	 */
 	private Double fixedDividend;
 	
-	private Double parValue;
+	/**
+	 * Par value
+	 */
+	private double parValue;
+	
+	/**
+	 * Share price.
+	 */
+	private double sharePrice;
 
-	public Logger getLogger() {
-		return logger;
+	public Stock(StockSymbol stockSymbol, StockType stockType, double lastDividend, Double fixedDividend, double parValue) {
+		this.stockSymbol = stockSymbol;
+		this.stockType = stockType;
+		this.lastDividend = lastDividend;
+		this.fixedDividend = fixedDividend;
+		this.parValue = parValue;
 	}
 
-	public void setLogger(Logger logger) {
-		this.logger = logger;
-	}
-
+	/**
+	 * Get the stock symbol.
+	 * @return The stock symbol.
+	 */
 	public StockSymbol getStockSymbol() {
 		return stockSymbol;
 	}
 
+	/**
+	 * Set the stock symbol.
+	 * @param stockSymbol
+	 */
 	public void setStockSymbol(StockSymbol stockSymbol) {
 		this.stockSymbol = stockSymbol;
 	}
 
+	/**
+	 * Get the stock type.
+	 * @return The stock type.
+	 */
 	public StockType getStockType() {
 		return stockType;
 	}
 
+	/**
+	 * Set the stock type.
+	 * @param stockType Stock type.
+	 */
 	public void setStockType(StockType stockType) {
 		this.stockType = stockType;
 	}
 
+	/**
+	 * Get the last dividend.
+	 * @return The last dividend.
+	 */
 	public Double getLastDividend() {
 		return lastDividend;
 	}
 
+	/**
+	 * Set the last dividend
+	 * @param lastDividend new value of the last dividend.
+	 */
 	public void setLastDividend(Double lastDividend) {
 		this.lastDividend = lastDividend;
 	}
 
+	/**
+	 * Get the fixed dividend.
+	 * @return The fixed dividend.
+	 */
 	public Double getFixedDividend() {
 		return fixedDividend;
 	}
 
+	/**
+	 * Set the fixed dividend.
+	 * @param fixedDividend The new valeu of the fixed dividend.
+	 */
 	public void setFixedDividend(Double fixedDividend) {
 		this.fixedDividend = fixedDividend;
 	}
 
+	/**
+	 * Get the par value.
+	 * @return The par value.
+	 */
 	public Double getParValue() {
 		return parValue;
 	}
 
+	/**
+	 * Set the par value.
+	 * @param parValue the new value of the par value.
+	 */
 	public void setParValue(Double parValue) {
 		this.parValue = parValue;
+	}
+	
+	/**
+	 * Get the stock price.
+	 * 
+	 * @return The stock price.
+	 */
+	public double getSharePrice() {
+		return sharePrice;
+	}
+
+	/**
+	 * Set the stock price.
+	 * 
+	 * @param stockPrice The new value of the stock price.
+	 */
+	public void setSharePrice(double stockPrice) {
+		this.sharePrice = stockPrice;
+	}
+
+	/**
+	 * Get the dividend Yield.
+	 * DIVIDEND YIELD = ANNUAL DIVIDENDS PER Share / Price per share.
+	 * 
+	 * If there is any problem with computation, NEGATIVE_INFINITY is returned
+	 * @return The dividend yield.
+	 */
+	public double getDividendYield() {
+		double dividendYield = Double.NEGATIVE_INFINITY;
+		if(sharePrice > 0.0){
+			if( stockType==StockType.COMMON){// stockType==StockType.COMMON
+				dividendYield = lastDividend / sharePrice;
+			}else{
+				// stockType==StockType.PREFERRED
+				dividendYield = (fixedDividend * parValue ) / sharePrice;
+			}
+		}
+		return dividendYield;
+	}
+	
+	/**
+	 * Get the Price-Earnings Ratio.
+	 * The price-earnings ratio can be calculated as:
+	 * 			Market Value per Share / Earnings per Share
+	 *			===>
+	 * If there is any problem with computation, NEGATIVE_INFINITY is returned
+	 * @return the P/E ration.
+	 */
+	public double getPeRatio() {
+		double peRatio = Double.NEGATIVE_INFINITY;
+		
+		if(sharePrice > 0.0){
+			peRatio = 1;// I don't find the earning per share anywhere in the exercice
+		}
+		
+		return peRatio;
 	}
 	
 	
