@@ -1,9 +1,7 @@
 package jpmorgan.simpleStock;
 
 import java.util.HashMap;
-
-import org.junit.Before;
-import org.junit.Test;
+import java.util.List;
 
 import jpmorgan.simpleStock.memorySimulator.StockMarketSimulator;
 import jpmorgan.simpleStock.memorySimulator.StockMarketSimulatorImpl;
@@ -13,14 +11,23 @@ import jpmorgan.simpleStock.model.StockType;
 import jpmorgan.simpleStock.model.Trade;
 import jpmorgan.simpleStock.service.SimpleStockService;
 import jpmorgan.simpleStock.service.SimpleStockServiceImpl;
+import junit.framework.Assert;
+
+import org.junit.Before;
+import org.junit.Test;
+
 
 public class simpleStockServiceTest {
 	
 	StockMarketSimulator stockMarket;
 	SimpleStockService simpleStockService;
+	
+	/**
+	 * Initialization for following tests.
+	 */
 	@Before
 	public void initialize() {
-		stockMarket = new StockMarketSimulatorImpl() ;
+		stockMarket = StockMarketSimulatorImpl.getInstance() ;
 		simpleStockService = new SimpleStockServiceImpl();
 		
 		HashMap<StockSymbol, Stock> stocks = new HashMap<StockSymbol, Stock>();
@@ -41,12 +48,72 @@ public class simpleStockServiceTest {
 		
 	}
 	
+	/**
+	 * Dividend yield calculation test.
+	 */
 	@Test
 	public void calculateDividendYieldTest() {
+		double dividendYieldTEA =simpleStockService.calculateDividendYield(StockSymbol.TEA);
+		Assert.assertTrue("The divided yield should be equals to zero for TEA", dividendYieldTEA == 0);
 		
-		double dividendYieldTEA =simpleStockService.calculateDividendYield(StockSymbol.POP);
-		System.out.println("Dividend yield TEA : "+ dividendYieldTEA);
+		double dividendYieldPOP =simpleStockService.calculateDividendYield(StockSymbol.POP);
+		Assert.assertTrue("The divided yield should be a postive value For POP", dividendYieldPOP > 0);
 		
+		double dividendYieldALE =simpleStockService.calculateDividendYield(StockSymbol.ALE);
+		Assert.assertTrue("The divided yield should be a postive value for ALE", dividendYieldALE > 0);
+		
+		double dividendYieldGIN =simpleStockService.calculateDividendYield(StockSymbol.GIN);
+		Assert.assertTrue("The divided yield should be a postive value for GIN", dividendYieldGIN > 0);
+		
+		double dividendYieldJOE =simpleStockService.calculateDividendYield(StockSymbol.JOE);
+		Assert.assertTrue("The divided yield should be a postive value for JOE", dividendYieldJOE > 0);
+		
+	}
+	
+	/**
+	 * P/E ration calculation test.
+	 */
+	@Test
+	public void calculatePERationTest() {
+		
+		double peRatioTEA = simpleStockService.calculatePERation(StockSymbol.TEA);
+		Assert.assertTrue("The P/E Ratio should be equals to zero for TEA", peRatioTEA == Double.NEGATIVE_INFINITY);
+		
+		double peRatioPOP =simpleStockService.calculatePERation(StockSymbol.POP);
+		Assert.assertTrue("The P/E Ratio should be a postive value", peRatioPOP > 0);
+		
+		double peRatioALE =simpleStockService.calculatePERation(StockSymbol.ALE);
+		Assert.assertTrue("The P/E Ratio should be a postive value", peRatioALE > 0);
+		
+		double peRatioGIN =simpleStockService.calculatePERation(StockSymbol.GIN);
+		Assert.assertTrue("The P/E Ratio should be a postive value", peRatioGIN > 0);
+		
+		double peRatioJOE =simpleStockService.calculatePERation(StockSymbol.JOE);
+		Assert.assertTrue("The P/E Ratio should be a postive value", peRatioJOE > 0);
+	}
+	
+	@Test
+	public void recordTradeTest() {
+		Stock stock  = stockMarket.getStockByStockSymbol(StockSymbol.POP); 
+		Trade trade = new Trade(1.0, 1, stock);
+		simpleStockService.recordTrade(trade);
+		
+		Assert.assertEquals(stock.getSharePrice(), trade.getTradePrice());
+		List<Trade> tradeList =  stockMarket.getTradeList();
+		
+		Assert.assertTrue(tradeList.get(tradeList.size()-1).getTradePrice() == trade.getTradePrice());
+	}
+	
+	@Test
+	public void calculateVolumeWeightedStockPrice() {
+		Double cwsp = simpleStockService.calculateVolumeWeightedStockPrice(StockSymbol.ALE);
+		Assert.assertTrue(cwsp > 0.0);
+	}
+	
+	@Test
+	public void calculateGBCEAllShareIndexTest() {
+		Double gbce = simpleStockService.calculateGBCEAllShareIndex();
+		Assert.assertTrue(gbce > 0.0);
 	}
 
 }

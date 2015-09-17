@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import jpmorgan.simpleStock.memorySimulator.StockMarketSimulator;
+import jpmorgan.simpleStock.memorySimulator.StockMarketSimulatorImpl;
 import jpmorgan.simpleStock.model.Stock;
 import jpmorgan.simpleStock.model.StockSymbol;
 import jpmorgan.simpleStock.model.Trade;
@@ -23,9 +24,9 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 
 	private Logger logger = Logger.getLogger(SimpleStockServiceImpl.class);
 	
-	private StockMarketSimulator stockMarketSimulator;
+	private StockMarketSimulator stockMarketSimulator = StockMarketSimulatorImpl.getInstance();
 
-	/** {@inheritDoc} */
+	/** {@inheritDoc} */ 
 	@Override
 	public double calculateDividendYield(StockSymbol stockSymbol) {
 		double dividendYield = Double.NEGATIVE_INFINITY;
@@ -52,7 +53,7 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 	/** {@inheritDoc} */
 	@Override
 	public double calculatePERation(StockSymbol stockSymbol) {
-		double peRatio = -1.0;
+		double peRatio = Double.NEGATIVE_INFINITY;
 		try{
 			logger.info("Calculate the P/E Ration");
 			Stock stock = stockMarketSimulator.getStockByStockSymbol(stockSymbol);
@@ -69,6 +70,7 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 
 
 		}catch(Exception e){
+			logger.error("An error occured calculing the PE Ratio for : "+stockSymbol);
 			e.printStackTrace();
 		}
 		return peRatio;
@@ -107,60 +109,45 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 		}
 	}
 
-	private  double calculateStockPriceByWindow(final StockSymbol stockSymbol, final int window) {
-		double stockPriceWindow = 0.0;
+	private  double calculateStockPriceByWindow(final StockSymbol stockSymbol, final int window) throws ArithmeticException{
+		double stockPriceWindow = Double.NEGATIVE_INFINITY; 
 		
 		List<Trade> trades = stockMarketSimulator.getTradesByStockSymbol(stockSymbol);
 
 		int shareQuantityTotal = 0;
 		double tradePriceTotal = 0.0;
 		for(Trade trade : trades){
-			int muniteNow = (new Date()).getMinutes();
-			boolean isTradeInWindow = trade.getTimeStamp().getMinutes() + window >= muniteNow;
+			Long timeNow = (new Date()).getTime();
+			boolean isTradeInWindow = trade.getTimeStamp().getTime() + window*60000 >= timeNow;
 			if (isTradeInWindow) {
-			tradePriceTotal += (trade.getTradePrice() * trade.getSharesQuantity());
-			shareQuantityTotal += trade.getSharesQuantity();
+				tradePriceTotal += (trade.getTradePrice() * trade.getSharesQuantity());
+				shareQuantityTotal += trade.getSharesQuantity();
 			}
 		}
 		if(shareQuantityTotal > 0){
 			stockPriceWindow = tradePriceTotal / shareQuantityTotal;	
+		} else {
+			logger.error("the Total quantity of share is null");
+			throw  new ArithmeticException();
 		}
 
 		return stockPriceWindow;
 	}
-	
-	private  double calculateStockPriceAllTradesByStockSymbol(final StockSymbol stockSymbol) {
-		double stockPriceWindow = 0.0;
-		
-		List<Trade> trades = stockMarketSimulator.getTradesByStockSymbol(stockSymbol);
 
-		int shareQuantityTotal = 0;
-		double tradePriceTotal = 0.0;
-		for(Trade trade : trades){
-			tradePriceTotal += (trade.getTradePrice() * trade.getSharesQuantity());
-			shareQuantityTotal += trade.getSharesQuantity();
-			
-		}
-		if(shareQuantityTotal > 0){
-			stockPriceWindow = tradePriceTotal / shareQuantityTotal;	
-		}
-
-		return stockPriceWindow;
-	}
 	
 	/** {@inheritDoc} */
 	@Override
 	public double calculateVolumeWeightedStockPrice(StockSymbol stockSymbol) {
-		double stockPrice = 0.0;
+		double stockPrice = Double.NEGATIVE_INFINITY;
+		logger.info("Calculate the Volume Weight stock price");
 		try{
 			Stock stock = stockMarketSimulator.getStockByStockSymbol(stockSymbol);
 			if(stock==null){
-				throw new Exception("");
+				throw new Exception("No stock found that correspond to the stock Symbol");
 			}
 			stockPrice = calculateStockPriceByWindow(stockSymbol, WINDOW_15_MINUTE);
-			logger.debug("");
 		}catch(Exception e){
-			logger.error("", e);
+			logger.error("Error : Volume Weight stock price calculation ", e);
 			e.printStackTrace();
 		}
 		return stockPrice;
@@ -169,25 +156,26 @@ public class SimpleStockServiceImpl implements SimpleStockService {
 	/** {@inheritDoc} */
 	@Override
 	public double calculateGBCEAllShareIndex() {
-		double allShareIndex = 0.0;
+		double allShareIndex =Double.NEGATIVE_INFINITY;
+		logger.info("Calculate GBCE All index");
+		try {
+			HashMap<StockSymbol, Stock> stocks = stockMarketSimulator.getStocks();
+			
+			double geoMean = 1.0;
+			final int stockPriceNumber = stocks.size();
+			if(stockPriceNumber>=1){
+				for (StockSymbol key : stocks.keySet()){
+					geoMean *= stocks.get(key).getSharePrice();
+				}
+				allShareIndex = Math.pow(geoMean, 1.0/stockPriceNumber);
+			}
+			
+		}catch (Exception e) {
+			logger.error("Error: GBCE calculation", e);
+			e.printStackTrace();
+		}
 		
-		// Calculate stock price for all stock in the system
-		HashMap<StockSymbol, Stock> stocks = stockMarketSimulator.getStocks();
-		List<Double> stockPrices = new ArrayList<Double>();
-		for(StockSymbol stockSymbol: stocks.keySet() ){
-			double stockPrice = calculateStockPriceByWindow(stockSymbol, 0);
-			if(stockPrice > 0){
-				stockPrices.add(stockPrice);
-			}
-		}
-		double geoMean = 1.0;
-		final int stockPriceNumber = stockPrices.size();
-		if(stockPriceNumber>=1){
-			for(int i = 0; i<=(stockPriceNumber-1); i++){
-				geoMean *= stockPrices.get(i).doubleValue();
-			}
-			geoMean = Math.pow(geoMean, 1/stockPriceNumber);
-		}
+		
 		return allShareIndex;	
 	}
 

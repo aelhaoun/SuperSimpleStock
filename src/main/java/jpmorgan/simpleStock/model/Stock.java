@@ -182,10 +182,10 @@ public class Stock {
 	 * If there is any problem with computation, NEGATIVE_INFINITY is returned
 	 * @return the P/E ration.
 	 */
-	public double getPeRatio() throws ArithmeticException{
+	public double getPeRatio() throws ArithmeticException {
 		double peRatio = Double.NEGATIVE_INFINITY;
 		
-		if(lastDividend > 0.0){
+		if (lastDividend > 0.0){
 			peRatio = sharePrice/lastDividend;
 		}else  if (lastDividend == 0){
 			logger.error("The last dividend should be greater than 0");
